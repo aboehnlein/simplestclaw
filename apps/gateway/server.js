@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import http from 'http';
 import net from 'net';
 
@@ -8,9 +8,39 @@ const OPENCLAW_PORT = 18789;
 // Health check state
 let openclawHealthy = false;
 let openclawProcess = null;
+let configuredProxy = false;
+
+// Configure OpenClaw to trust our local proxy
+function configureOpenClaw() {
+  if (configuredProxy) return;
+  
+  console.log('Configuring OpenClaw trustedProxies...');
+  
+  const result = spawnSync('npx', [
+    'openclaw', 'config', 'set', 
+    'gateway.trustedProxies', 
+    '["127.0.0.1"]'
+  ], {
+    stdio: 'pipe',
+    env: {
+      ...process.env,
+      NODE_OPTIONS: '--max-old-space-size=2048',
+    }
+  });
+  
+  if (result.status === 0) {
+    console.log('OpenClaw trustedProxies configured successfully');
+    configuredProxy = true;
+  } else {
+    console.error('Failed to configure trustedProxies:', result.stderr?.toString());
+  }
+}
 
 // Start OpenClaw gateway as child process
 function startOpenClaw() {
+  // Configure proxy trust before starting
+  configureOpenClaw();
+  
   console.log('Starting OpenClaw gateway...');
   
   const args = [

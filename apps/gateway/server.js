@@ -28,8 +28,9 @@ function startOpenClaw() {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
-      // Pass through Anthropic key
+      // Pass through API keys
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     }
   });
 

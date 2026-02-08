@@ -37,11 +37,11 @@ Download for your platform:
 
 ### Option 2: Hosted (Railway)
 
-Click the button below, sign in to Railway, and you're done:
+Click the button below, sign in to Railway, add your API key (Anthropic or OpenAI), and you're done:
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/gEz3TD?referralCode=Y7R5kV)
 
-You pay Railway directly (~$5/month). We never touch your money.
+You pay Railway directly (~$5/month for hosting). We never touch your money.
 
 ## Development
 

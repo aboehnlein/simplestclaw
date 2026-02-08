@@ -28,6 +28,8 @@ function startOpenClaw() {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
+      // Increase Node heap size to prevent OOM crashes
+      NODE_OPTIONS: '--max-old-space-size=2048',
       // Pass through API keys for supported providers
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,

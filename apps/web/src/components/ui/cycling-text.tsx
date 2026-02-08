@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { TextRoll } from './text-roll';
 
 export type CyclingTextProps = {
@@ -8,11 +8,7 @@ export type CyclingTextProps = {
   className?: string;
 };
 
-export function CyclingText({ 
-  words, 
-  interval = 2500, 
-  className 
-}: CyclingTextProps) {
+export function CyclingText({ words, interval = 2500, className }: CyclingTextProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [key, setKey] = useState(0);
 
@@ -26,8 +22,8 @@ export function CyclingText({
   }, [words.length, interval]);
 
   return (
-    <TextRoll 
-      key={key} 
+    <TextRoll
+      key={key}
       className={className}
       duration={0.3}
       getEnterDelay={(i) => i * 0.03}

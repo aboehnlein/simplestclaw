@@ -1,10 +1,10 @@
 'use client';
 import {
+  type Target,
+  type TargetAndTransition,
+  type Transition,
+  type VariantLabels,
   motion,
-  VariantLabels,
-  Target,
-  TargetAndTransition,
-  Transition,
 } from 'motion/react';
 
 export type TextRollProps = {
@@ -57,17 +57,13 @@ export function TextRoll({
         return (
           <span
             key={i}
-            className='relative inline-block [perspective:10000px] [transform-style:preserve-3d] [width:auto]'
-            aria-hidden='true'
+            className="relative inline-block [perspective:10000px] [transform-style:preserve-3d] [width:auto]"
+            aria-hidden="true"
           >
             <motion.span
-              className='absolute inline-block [backface-visibility:hidden] [transform-origin:50%_25%]'
-              initial={
-                variants?.enter?.initial ?? defaultVariants.enter.initial
-              }
-              animate={
-                variants?.enter?.animate ?? defaultVariants.enter.animate
-              }
+              className="absolute inline-block [backface-visibility:hidden] [transform-origin:50%_25%]"
+              initial={variants?.enter?.initial ?? defaultVariants.enter.initial}
+              animate={variants?.enter?.animate ?? defaultVariants.enter.animate}
               transition={{
                 ...transition,
                 duration,
@@ -77,7 +73,7 @@ export function TextRoll({
               {letter === ' ' ? '\u00A0' : letter}
             </motion.span>
             <motion.span
-              className='absolute inline-block [backface-visibility:hidden] [transform-origin:50%_100%]'
+              className="absolute inline-block [backface-visibility:hidden] [transform-origin:50%_100%]"
               initial={variants?.exit?.initial ?? defaultVariants.exit.initial}
               animate={variants?.exit?.animate ?? defaultVariants.exit.animate}
               transition={{
@@ -85,19 +81,15 @@ export function TextRoll({
                 duration,
                 delay: getExitDelay(i),
               }}
-              onAnimationComplete={
-                letters.length === i + 1 ? onAnimationComplete : undefined
-              }
+              onAnimationComplete={letters.length === i + 1 ? onAnimationComplete : undefined}
             >
               {letter === ' ' ? '\u00A0' : letter}
             </motion.span>
-            <span className='invisible'>
-              {letter === ' ' ? '\u00A0' : letter}
-            </span>
+            <span className="invisible">{letter === ' ' ? '\u00A0' : letter}</span>
           </span>
         );
       })}
-      <span className='sr-only'>{children}</span>
+      <span className="sr-only">{children}</span>
     </span>
   );
 }

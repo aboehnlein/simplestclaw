@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 import { useAppStore } from '../lib/store';
 import { GeneralTab } from './settings/GeneralTab';
 import { SecurityTab } from './settings/SecurityTab';
@@ -50,7 +50,10 @@ export function SettingsPanel() {
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div
+        className="flex-1 overflow-y-auto scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {activeTab === 'general' && <GeneralTab />}
         {activeTab === 'security' && <SecurityTab />}
       </div>

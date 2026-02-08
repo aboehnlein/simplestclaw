@@ -1,4 +1,4 @@
-import { Loader2, Download, Check, AlertCircle } from 'lucide-react';
+import { AlertCircle, Check, Download, Loader2 } from 'lucide-react';
 import { useAppStore } from '../lib/store';
 
 export function Loading() {
@@ -47,7 +47,7 @@ export function Loading() {
       <div className="flex flex-col items-center space-y-4 max-w-md px-8">
         {content.icon}
         <p className="text-[15px] text-white/80 font-medium">{content.text}</p>
-        
+
         {content.subtext && (
           <p className="text-[13px] text-white/40 text-center">{content.subtext}</p>
         )}
@@ -63,7 +63,8 @@ export function Loading() {
 
         {runtimeStatus.type === 'downloading' && (
           <p className="text-[11px] text-white/30 text-center mt-4">
-            This downloads a lightweight Node.js runtime (~45MB).<br />
+            This downloads a lightweight Node.js runtime (~45MB).
+            <br />
             You won't need to do this again.
           </p>
         )}

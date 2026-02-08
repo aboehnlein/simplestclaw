@@ -1,7 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import {
+  type ConnectionState,
+  type Message,
+  createOpenClawClient,
+} from '@simplestclaw/openclaw-client';
+import { Loader2, Send } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { createOpenClawClient, type Message, type ConnectionState } from '@simplestclaw/openclaw-client';
 import { useAppStore } from '../lib/store';
 import { tauri } from '../lib/tauri';
 
@@ -11,7 +15,7 @@ export function Chat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
-  
+
   const clientRef = useRef<ReturnType<typeof createOpenClawClient> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -27,7 +31,12 @@ export function Chat() {
   }, [messages, scrollToBottom]);
 
   useEffect(() => {
-    console.log('[Chat] useEffect triggered, gatewayUrl:', gatewayUrl, 'gatewayToken:', gatewayToken?.substring(0, 10) + '...');
+    console.log(
+      '[Chat] useEffect triggered, gatewayUrl:',
+      gatewayUrl,
+      'gatewayToken:',
+      `${gatewayToken?.substring(0, 10)}...`
+    );
     if (!gatewayUrl || !gatewayToken) {
       console.log('[Chat] Missing gatewayUrl or gatewayToken, skipping connect');
       return;
@@ -60,7 +69,13 @@ export function Chat() {
               status: 'success',
             });
             // Also persist to backend
-            tauri.addActivityEntry('api_call', `AI response received (${msg.content.length} chars)`, 'success').catch(() => {});
+            tauri
+              .addActivityEntry(
+                'api_call',
+                `AI response received (${msg.content.length} chars)`,
+                'success'
+              )
+              .catch(() => {});
           }
         }
       })
@@ -71,7 +86,9 @@ export function Chat() {
           details: 'Connected to OpenClaw gateway',
           status: 'success',
         });
-        tauri.addActivityEntry('gateway', 'Connected to OpenClaw gateway', 'success').catch(() => {});
+        tauri
+          .addActivityEntry('gateway', 'Connected to OpenClaw gateway', 'success')
+          .catch(() => {});
       })
       .on('onError', (err) => {
         console.error('[Chat] Error:', err);
@@ -80,7 +97,9 @@ export function Chat() {
           details: `Gateway error: ${err.message || err}`,
           status: 'failed',
         });
-        tauri.addActivityEntry('gateway', `Gateway error: ${err.message || err}`, 'failed').catch(() => {});
+        tauri
+          .addActivityEntry('gateway', `Gateway error: ${err.message || err}`, 'failed')
+          .catch(() => {});
       })
       .on('onDisconnect', (reason) => {
         console.log('[Chat] Disconnected:', reason);
@@ -89,11 +108,13 @@ export function Chat() {
           details: `Disconnected: ${reason || 'unknown'}`,
           status: 'success',
         });
-        tauri.addActivityEntry('gateway', `Disconnected: ${reason || 'unknown'}`, 'success').catch(() => {});
+        tauri
+          .addActivityEntry('gateway', `Disconnected: ${reason || 'unknown'}`, 'success')
+          .catch(() => {});
       });
 
     clientRef.current = client;
-    
+
     // Small delay to avoid React Strict Mode double-invoke issues
     const connectTimeout = setTimeout(() => {
       console.log('[Chat] Attempting to connect, isActive:', isActive);
@@ -136,7 +157,9 @@ export function Chat() {
         details: `Message sent (${input.length} chars)`,
         status: 'success',
       });
-      tauri.addActivityEntry('api_call', `Message sent (${input.length} chars)`, 'success').catch(() => {});
+      tauri
+        .addActivityEntry('api_call', `Message sent (${input.length} chars)`, 'success')
+        .catch(() => {});
     } catch (err) {
       console.error('Failed to send message:', err);
       addActivityLog({
@@ -144,7 +167,9 @@ export function Chat() {
         details: `Failed to send message: ${err}`,
         status: 'failed',
       });
-      tauri.addActivityEntry('api_call', `Failed to send message: ${err}`, 'failed').catch(() => {});
+      tauri
+        .addActivityEntry('api_call', `Failed to send message: ${err}`, 'failed')
+        .catch(() => {});
     } finally {
       setIsLoading(false);
     }
@@ -153,9 +178,12 @@ export function Chat() {
   // Ambient status - tiny dot, not screaming
   const getStatusColor = () => {
     switch (connectionState) {
-      case 'connected': return 'bg-emerald-500';
-      case 'connecting': return 'bg-white/50';
-      default: return 'bg-white/20';
+      case 'connected':
+        return 'bg-emerald-500';
+      case 'connecting':
+        return 'bg-white/50';
+      default:
+        return 'bg-white/20';
     }
   };
 
@@ -231,7 +259,6 @@ export function Chat() {
               placeholder={connectionState === 'connected' ? 'Message...' : 'Connecting...'}
               disabled={connectionState !== 'connected' || isLoading}
               className="flex-1 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/10 text-[15px] placeholder-white/30 focus:outline-none focus:border-white/20 disabled:opacity-50 transition-colors"
-              autoFocus
             />
             <button
               type="submit"

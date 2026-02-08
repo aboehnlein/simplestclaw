@@ -1,6 +1,6 @@
+import { ExternalLink, FileText, RefreshCw, Shield, Terminal, Trash2, Zap } from 'lucide-react';
 import { useEffect } from 'react';
-import { Trash2, ExternalLink, FileText, Terminal, Zap, Shield, RefreshCw } from 'lucide-react';
-import { useAppStore, type ActivityLogEntry } from '../../lib/store';
+import { type ActivityLogEntry, useAppStore } from '../../lib/store';
 import { tauri } from '../../lib/tauri';
 
 function formatTimestamp(timestamp: number): string {
@@ -197,11 +197,16 @@ export function SecurityTab() {
                           {entry.details}
                         </p>
                         {entry.path && (
-                          <p className="text-[12px] text-white/30 font-mono mt-1 truncate" title={entry.path}>
+                          <p
+                            className="text-[12px] text-white/30 font-mono mt-1 truncate"
+                            title={entry.path}
+                          >
                             {entry.path}
                           </p>
                         )}
-                        <span className={`inline-block mt-2 px-2 py-0.5 rounded text-[11px] font-medium ${getStatusBg(entry.status)} ${getStatusColor(entry.status)}`}>
+                        <span
+                          className={`inline-block mt-2 px-2 py-0.5 rounded text-[11px] font-medium ${getStatusBg(entry.status)} ${getStatusColor(entry.status)}`}
+                        >
                           {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
                         </span>
                       </div>
@@ -213,7 +218,8 @@ export function SecurityTab() {
           )}
 
           <p className="mt-3 text-[12px] text-white/30">
-            Showing last {Math.min(activityLog.length, 500)} entries. Older entries are automatically removed.
+            Showing last {Math.min(activityLog.length, 500)} entries. Older entries are
+            automatically removed.
           </p>
         </section>
       </div>

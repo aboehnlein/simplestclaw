@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Check, Loader2, AlertCircle, LogOut } from 'lucide-react';
+import { AlertCircle, Check, Eye, EyeOff, Loader2, LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../../lib/store';
-import { tauri, type RuntimeStatus as TauriRuntimeStatus } from '../../lib/tauri';
+import { type RuntimeStatus as TauriRuntimeStatus, tauri } from '../../lib/tauri';
 
 export function GeneralTab() {
-  const { gatewayStatus, runtimeStatus, addActivityLog, setScreen, setGatewayStatus, setApiKeyConfigured } = useAppStore();
+  const {
+    gatewayStatus,
+    runtimeStatus,
+    addActivityLog,
+    setScreen,
+    setGatewayStatus,
+    setApiKeyConfigured,
+  } = useAppStore();
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -79,17 +86,17 @@ export function GeneralTab() {
       // Stop the gateway
       await tauri.stopGateway();
       setGatewayStatus({ type: 'stopped' });
-      
+
       // Clear the API key
       await tauri.setApiKey('');
       setApiKeyConfigured(false);
-      
+
       addActivityLog({
         operationType: 'gateway',
         details: 'Logged out and cleared API key',
         status: 'success',
       });
-      
+
       // Navigate to onboarding
       setScreen('onboarding');
     } catch (err) {
@@ -198,9 +205,7 @@ export function GeneralTab() {
         {/* Gateway Status Section */}
         <section>
           <h2 className="text-[15px] font-medium mb-1">Gateway Status</h2>
-          <p className="text-[13px] text-white/40 mb-4">
-            OpenClaw gateway connection status.
-          </p>
+          <p className="text-[13px] text-white/40 mb-4">OpenClaw gateway connection status.</p>
 
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
@@ -228,9 +233,7 @@ export function GeneralTab() {
             )}
 
             {gatewayStatus.type === 'error' && (
-              <div className="text-[13px] text-red-400/80">
-                {gatewayStatus.message}
-              </div>
+              <div className="text-[13px] text-red-400/80">{gatewayStatus.message}</div>
             )}
           </div>
         </section>
@@ -238,37 +241,46 @@ export function GeneralTab() {
         {/* Runtime Status Section */}
         <section>
           <h2 className="text-[15px] font-medium mb-1">Runtime</h2>
-          <p className="text-[13px] text-white/40 mb-4">
-            Bundled Node.js runtime for OpenClaw.
-          </p>
+          <p className="text-[13px] text-white/40 mb-4">Bundled Node.js runtime for OpenClaw.</p>
 
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[14px] text-white/60">Status</span>
-              <span className={`text-[14px] font-medium ${
-                runtimeStatus.type === 'installed' ? 'text-emerald-400' :
-                runtimeStatus.type === 'downloading' ? 'text-yellow-400' :
-                runtimeStatus.type === 'error' ? 'text-red-400' : 'text-white/40'
-              }`}>
-                {runtimeStatus.type === 'installed' ? 'Installed' :
-                 runtimeStatus.type === 'downloading' ? `Downloading (${Math.round(runtimeStatus.progress)}%)` :
-                 runtimeStatus.type === 'error' ? 'Error' : 'Checking...'}
+              <span
+                className={`text-[14px] font-medium ${
+                  runtimeStatus.type === 'installed'
+                    ? 'text-emerald-400'
+                    : runtimeStatus.type === 'downloading'
+                      ? 'text-yellow-400'
+                      : runtimeStatus.type === 'error'
+                        ? 'text-red-400'
+                        : 'text-white/40'
+                }`}
+              >
+                {runtimeStatus.type === 'installed'
+                  ? 'Installed'
+                  : runtimeStatus.type === 'downloading'
+                    ? `Downloading (${Math.round(runtimeStatus.progress)}%)`
+                    : runtimeStatus.type === 'error'
+                      ? 'Error'
+                      : 'Checking...'}
               </span>
             </div>
 
             {runtimeStatus.type === 'installed' && (
               <div className="flex items-center justify-between">
                 <span className="text-[14px] text-white/60">Version</span>
-                <span className="text-[14px] text-white/80 font-mono">
-                  {runtimeStatus.version}
-                </span>
+                <span className="text-[14px] text-white/80 font-mono">{runtimeStatus.version}</span>
               </div>
             )}
 
             {runtimeDetails?.nodePath && (
               <div className="flex items-center justify-between">
                 <span className="text-[14px] text-white/60">Path</span>
-                <span className="text-[12px] text-white/50 font-mono truncate max-w-[300px]" title={runtimeDetails.nodePath}>
+                <span
+                  className="text-[12px] text-white/50 font-mono truncate max-w-[300px]"
+                  title={runtimeDetails.nodePath}
+                >
                   {runtimeDetails.nodePath}
                 </span>
               </div>
@@ -279,9 +291,7 @@ export function GeneralTab() {
         {/* App Info Section */}
         <section>
           <h2 className="text-[15px] font-medium mb-1">About</h2>
-          <p className="text-[13px] text-white/40 mb-4">
-            Application information.
-          </p>
+          <p className="text-[13px] text-white/40 mb-4">Application information.</p>
 
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
@@ -309,9 +319,7 @@ export function GeneralTab() {
         {/* Logout Section */}
         <section className="pt-4 border-t border-white/5">
           <h2 className="text-[15px] font-medium mb-1">Account</h2>
-          <p className="text-[13px] text-white/40 mb-4">
-            Sign out to change provider or API key.
-          </p>
+          <p className="text-[13px] text-white/40 mb-4">Sign out to change provider or API key.</p>
 
           <button
             onClick={handleLogout}

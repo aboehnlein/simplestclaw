@@ -60,16 +60,17 @@ export const useAppStore = create<AppState>((set) => ({
   setRuntimeStatus: (runtimeStatus) => set({ runtimeStatus }),
   setApiKeyConfigured: (apiKeyConfigured) => set({ apiKeyConfigured }),
   setError: (error) => set({ error }),
-  addActivityLog: (entry) => set((state) => ({
-    activityLog: [
-      {
-        ...entry,
-        id: `activity-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: Date.now(),
-      },
-      ...state.activityLog,
-    ].slice(0, 500), // Keep last 500 entries
-  })),
+  addActivityLog: (entry) =>
+    set((state) => ({
+      activityLog: [
+        {
+          ...entry,
+          id: `activity-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: Date.now(),
+        },
+        ...state.activityLog,
+      ].slice(0, 500), // Keep last 500 entries
+    })),
   setActivityLog: (activityLog) => set({ activityLog }),
   clearActivityLog: () => set({ activityLog: [] }),
 }));

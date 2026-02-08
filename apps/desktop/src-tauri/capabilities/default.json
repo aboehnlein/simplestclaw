@@ -3,8 +3,5 @@
   "identifier": "default",
   "description": "Default capability for simplestclaw desktop app",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "shell:allow-open"
-  ]
+  "permissions": ["core:default", "shell:allow-open"]
 }

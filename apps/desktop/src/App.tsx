@@ -1,20 +1,14 @@
-import { useEffect, useCallback, useRef } from 'react';
-import { useAppStore } from './lib/store';
-import { tauri } from './lib/tauri';
+import { useCallback, useEffect, useRef } from 'react';
+import { Chat } from './components/Chat';
 import { Loading } from './components/Loading';
 import { Onboarding } from './components/Onboarding';
 import { SettingsPanel } from './components/SettingsPanel';
-import { Chat } from './components/Chat';
+import { useAppStore } from './lib/store';
+import { tauri } from './lib/tauri';
 
 function App() {
-  const { 
-    screen, 
-    setScreen, 
-    setGatewayStatus, 
-    setRuntimeStatus,
-    setApiKeyConfigured, 
-    setError 
-  } = useAppStore();
+  const { screen, setScreen, setGatewayStatus, setRuntimeStatus, setApiKeyConfigured, setError } =
+    useAppStore();
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isInitializedRef = useRef(false); // Prevent double init from React Strict Mode
@@ -23,7 +17,7 @@ function App() {
   const pollRuntimeStatus = useCallback(async () => {
     try {
       const status = await tauri.getRuntimeStatus();
-      
+
       if (status.error) {
         setRuntimeStatus({ type: 'error', message: status.error });
         if (pollIntervalRef.current) {

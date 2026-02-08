@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { GatewayInfo, ActivityLogEntry } from './store';
+import type { ActivityLogEntry, GatewayInfo } from './store';
 
 export interface Config {
   anthropicApiKey: string | null;
@@ -40,7 +40,11 @@ export const tauri = {
     return invoke('stop_gateway');
   },
 
-  async getGatewayStatus(): Promise<{ running: boolean; info: GatewayInfo | null; error: string | null }> {
+  async getGatewayStatus(): Promise<{
+    running: boolean;
+    info: GatewayInfo | null;
+    error: string | null;
+  }> {
     return invoke('get_gateway_status');
   },
 

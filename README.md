@@ -5,7 +5,7 @@
 <h1 align="center">simplestclaw</h1>
 
 <p align="center">
-  <strong>The simplest way to run OpenClaw. One click. No Telegram required.</strong>
+  <strong>The simplest way to run OpenClaw. One click. Local and cloud.</strong>
 </p>
 
 <p align="center">

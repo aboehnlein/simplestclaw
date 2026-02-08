@@ -11,7 +11,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'simplestclaw - The Simplest Way to Use OpenClaw',
   description:
-    'One-click setup for OpenClaw, the open-source AI coding assistant. No Telegram required. Run locally or deploy to the cloud.',
+    'One-click setup for OpenClaw, the open-source AI coding assistant. Run locally or deploy to the cloud.',
   metadataBase: new URL('https://simplestclaw.com'),
   icons: {
     icon: '/icon.png',

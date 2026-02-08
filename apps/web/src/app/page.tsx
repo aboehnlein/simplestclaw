@@ -412,15 +412,15 @@ export default function Home() {
                 <ol className="space-y-2 text-[14px] mb-6">
                   <li className="flex items-start gap-3">
                     <span className="text-emerald-400 font-medium">1.</span>
-                    <span className="text-white/70">Enter your API key (required)</span>
+                    <span className="text-white/70">Continue to Railway</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-emerald-400 font-medium">2.</span>
-                    <span className="text-white/70">Click Deploy on Railway</span>
+                    <span className="text-white/70">Follow the steps</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-emerald-400 font-medium">3.</span>
-                    <span className="text-white/70">Visit your gateway URL and copy the token</span>
+                    <span className="text-white/70">Use OpenClaw in the cloud</span>
                   </li>
                 </ol>
                 <p className="text-[13px] text-white/40 mb-1 pt-4 border-t border-white/5">What you get:</p>

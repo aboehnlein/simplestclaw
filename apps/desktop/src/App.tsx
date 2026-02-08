@@ -16,6 +16,7 @@ function App() {
   } = useAppStore();
 
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isInitializedRef = useRef(false); // Prevent double init from React Strict Mode
 
   // Poll runtime status during download
   const pollRuntimeStatus = useCallback(async () => {
@@ -78,7 +79,15 @@ function App() {
   }, [setScreen, setGatewayStatus, setApiKeyConfigured, setError]);
 
   useEffect(() => {
+    // Prevent double initialization from React Strict Mode
+    if (isInitializedRef.current) {
+      console.log('[App] Already initialized, skipping');
+      return;
+    }
+    isInitializedRef.current = true;
+
     async function init() {
+      console.log('[App] Initializing...');
       setRuntimeStatus({ type: 'checking' });
 
       // Check initial runtime status
@@ -101,6 +110,7 @@ function App() {
     init();
 
     return () => {
+      console.log('[App] Cleanup');
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
       }

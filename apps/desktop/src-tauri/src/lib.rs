@@ -13,7 +13,10 @@ pub fn run() {
     println!("[startup] Cleaning up any orphaned gateway processes...");
     kill_orphaned_gateway_processes();
     
-    tauri::Builder::default()
+    // Small delay to ensure processes are fully killed
+    std::thread::sleep(std::time::Duration::from_millis(500));
+    
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             // Initialize managers
@@ -38,15 +41,12 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            // Stop the gateway when the window is closed or destroyed
-            match event {
-                tauri::WindowEvent::CloseRequested { .. } | tauri::WindowEvent::Destroyed => {
-                    println!("[window] Window closing, stopping gateway...");
-                    if let Some(manager) = window.app_handle().try_state::<SidecarManager>() {
-                        let _ = manager.stop();
-                    }
+            // Stop the gateway when the window close is requested
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                println!("[window] Window close requested, stopping gateway...");
+                if let Some(manager) = window.app_handle().try_state::<SidecarManager>() {
+                    let _ = manager.stop();
                 }
-                _ => {}
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -63,6 +63,26 @@ pub fn run() {
             runtime::install_runtime,
             runtime::is_runtime_installed,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    // Use run() with event handler for proper cleanup on exit
+    app.run(|app_handle, event| {
+        match event {
+            tauri::RunEvent::ExitRequested { .. } => {
+                println!("[app] Exit requested, cleaning up...");
+                if let Some(manager) = app_handle.try_state::<SidecarManager>() {
+                    let _ = manager.stop();
+                }
+                // Also run the orphan cleanup
+                kill_orphaned_gateway_processes();
+            }
+            tauri::RunEvent::Exit => {
+                println!("[app] Exiting, final cleanup...");
+                // Final cleanup attempt
+                kill_orphaned_gateway_processes();
+            }
+            _ => {}
+        }
+    });
 }

@@ -67,20 +67,21 @@ impl SidecarManager {
     /// Uses the bundled Node.js runtime so users don't need to install
     /// anything. On first launch, the runtime is automatically downloaded.
     pub fn start(&self, _app: &AppHandle) -> Result<GatewayInfo, String> {
-        // First, clean up any orphaned processes from previous runs
-        kill_orphaned_gateway_processes();
-        
         let mut state = self.state.lock().map_err(|e| e.to_string())?;
 
-        // Check if already running
+        // Check if already running and healthy
         if let Some(ref mut child) = state.child {
             match child.try_wait() {
                 Ok(Some(_)) => {
+                    // Process exited, clear state
+                    println!("[openclaw] Previous gateway process has exited, clearing state");
                     state.child = None;
                     state.info = None;
                 }
                 Ok(None) => {
+                    // Still running, return existing info
                     if let Some(ref info) = state.info {
+                        println!("[openclaw] Gateway already running, returning existing connection");
                         return Ok(info.clone());
                     }
                 }
@@ -88,6 +89,28 @@ impl SidecarManager {
                     state.child = None;
                     state.info = None;
                 }
+            }
+        }
+
+        // Check if port is already in use (another instance might be running)
+        let config = Config::load().map_err(|e| format!("Failed to load config: {}", e))?;
+        let port = config.gateway_port;
+        
+        if std::net::TcpStream::connect(format!("127.0.0.1:{}", port)).is_ok() {
+            println!("[openclaw] Port {} already in use, cleaning up...", port);
+            // Port is in use, kill orphaned processes
+            drop(state); // Release lock before cleanup
+            kill_orphaned_gateway_processes();
+            std::thread::sleep(std::time::Duration::from_millis(1500));
+            state = self.state.lock().map_err(|e| e.to_string())?;
+            
+            // Check again
+            if std::net::TcpStream::connect(format!("127.0.0.1:{}", port)).is_ok() {
+                return Err(format!(
+                    "Port {} is still in use. Another gateway may be running. \
+                     Please close all simplestclaw windows and try again.",
+                    port
+                ));
             }
         }
 
@@ -99,14 +122,12 @@ impl SidecarManager {
             );
         }
 
-        // Load config
-        let config = Config::load().map_err(|e| format!("Failed to load config: {}", e))?;
+        // Get API key from config (already loaded above)
         let api_key = config
             .anthropic_api_key
             .ok_or("No API key configured. Please enter your Anthropic API key in Settings.")?;
 
         let token = generate_token();
-        let port = config.gateway_port;
 
         // Get bundled node path (prioritize bundled over system)
         let (node_cmd, npx_cli_path) = find_node_and_npx().ok_or(
@@ -168,7 +189,7 @@ impl SidecarManager {
             token: token.clone(),
         };
 
-        println!("[openclaw] Gateway process started, waiting for it to be ready...");
+        println!("[openclaw] Gateway process started (PID: {:?}), waiting for it to be ready...", child.id());
 
         // Wait for gateway to be ready (check if port is listening)
         // Give it up to 30 seconds to start
@@ -177,11 +198,31 @@ impl SidecarManager {
             // Check if process is still running
             match child.try_wait() {
                 Ok(Some(status)) => {
+                    // Try to read stderr for more info
+                    let mut stderr_output = String::new();
+                    if let Some(ref mut stderr) = child.stderr {
+                        use std::io::Read;
+                        let _ = stderr.read_to_string(&mut stderr_output);
+                    }
+                    
+                    let exit_code = status.code().unwrap_or(-1);
+                    println!("[openclaw] Process exited with code: {}", exit_code);
+                    println!("[openclaw] stderr: {}", stderr_output);
+                    
+                    // Exit code 127 = command not found
+                    if exit_code == 127 {
+                        return Err(format!(
+                            "Gateway failed: command not found (exit code 127). \
+                             Node path: {}. This usually means the Node.js binary couldn't execute. \
+                             stderr: {}",
+                            node_cmd, stderr_output
+                        ));
+                    }
+                    
                     return Err(format!(
                         "Gateway process exited unexpectedly with status: {}. \
-                         This may happen if another gateway is already running. \
-                         Try restarting the app.",
-                        status
+                         stderr: {}",
+                        status, stderr_output
                     ));
                 }
                 Ok(None) => {} // Still running, good

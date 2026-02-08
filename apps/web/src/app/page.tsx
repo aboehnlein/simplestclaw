@@ -448,7 +448,7 @@ export default function Home() {
                   </li>
                 </ul>
                 <p className="text-[12px] text-white/30 mt-4 pt-4 border-t border-white/5">
-                  Requires Railway Hobby plan ($5/month). Free trial has memory limits.
+<span className="text-red-400">Note*</span> Requires Railway Hobby plan ($5/month). Free trial has memory limits.
                 </p>
               </div>
 

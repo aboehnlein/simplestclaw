@@ -530,10 +530,19 @@ fn generate_token() -> String {
 
 // Tauri Commands
 
+/// Start gateway in a background thread to avoid blocking the UI.
+/// The startup process involves waiting for the gateway to be ready,
+/// which can take several seconds.
 #[tauri::command]
-pub fn start_gateway(app: AppHandle) -> Result<GatewayInfo, String> {
-    let manager = app.state::<SidecarManager>();
-    manager.start(&app)
+pub async fn start_gateway(app: AppHandle) -> Result<GatewayInfo, String> {
+    // Run the blocking startup in a separate thread
+    // We clone the AppHandle which is cheap (Arc internally)
+    tokio::task::spawn_blocking(move || {
+        let manager = app.state::<SidecarManager>();
+        manager.start(&app)
+    })
+    .await
+    .map_err(|e| format!("Task failed: {}", e))?
 }
 
 #[tauri::command]

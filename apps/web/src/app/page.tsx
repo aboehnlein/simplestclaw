@@ -64,7 +64,10 @@ export default function Home() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-[1400px] mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="text-[15px] font-medium tracking-tight">simplestclaw</span>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="SimplestClaw" className="w-6 h-6" />
+            <span className="text-[15px] font-medium tracking-tight">simplestclaw</span>
+          </div>
           <a
             href="https://github.com/mbron64/simplestclaw"
             className="text-[13px] text-white/50 hover:text-white/90 transition-colors flex items-center gap-1.5"

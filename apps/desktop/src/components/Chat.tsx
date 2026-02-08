@@ -15,6 +15,7 @@ export function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const gatewayUrl = gatewayStatus.type === 'running' ? gatewayStatus.info.url : '';
+  const gatewayToken = gatewayStatus.type === 'running' ? gatewayStatus.info.token : '';
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -25,26 +26,62 @@ export function Chat() {
   }, [messages, scrollToBottom]);
 
   useEffect(() => {
-    if (!gatewayUrl) return;
+    console.log('[Chat] useEffect triggered, gatewayUrl:', gatewayUrl, 'gatewayToken:', gatewayToken?.substring(0, 10) + '...');
+    if (!gatewayUrl || !gatewayToken) {
+      console.log('[Chat] Missing gatewayUrl or gatewayToken, skipping connect');
+      return;
+    }
 
+    // Track if this effect instance is still active (for React Strict Mode)
+    let isActive = true;
+
+    console.log('[Chat] Creating OpenClaw client...');
     const client = createOpenClawClient({
       url: gatewayUrl,
+      token: gatewayToken,
       autoReconnect: true,
     });
 
     client
-      .on('onStateChange', setConnectionState)
+      .on('onStateChange', (state) => {
+        console.log('[Chat] State change:', state, 'isActive:', isActive);
+        if (isActive) setConnectionState(state);
+      })
       .on('onMessage', (msg) => {
-        setMessages((prev) => [...prev, msg]);
+        console.log('[Chat] Message received:', msg);
+        if (isActive) setMessages((prev) => [...prev, msg]);
+      })
+      .on('onConnect', () => {
+        console.log('[Chat] Connected!');
+      })
+      .on('onError', (err) => {
+        console.error('[Chat] Error:', err);
+      })
+      .on('onDisconnect', (reason) => {
+        console.log('[Chat] Disconnected:', reason);
       });
 
     clientRef.current = client;
-    client.connect().catch(console.error);
+    
+    // Small delay to avoid React Strict Mode double-invoke issues
+    const connectTimeout = setTimeout(() => {
+      console.log('[Chat] Attempting to connect, isActive:', isActive);
+      if (isActive) {
+        client.connect().catch((err) => {
+          console.error('[Chat] Failed to connect:', err);
+        });
+      }
+    }, 100);
 
     return () => {
-      client.disconnect();
+      isActive = false;
+      clearTimeout(connectTimeout);
+      // Only disconnect if actually connected
+      if (client.getState() !== 'disconnected') {
+        client.disconnect();
+      }
     };
-  }, [gatewayUrl]);
+  }, [gatewayUrl, gatewayToken]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

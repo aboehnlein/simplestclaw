@@ -6,6 +6,22 @@ import { GlowingEffect } from '@/components/ui/glowing-effect';
 
 type DeploymentMode = 'local' | 'hosted' | null;
 
+// GitHub release download URLs
+const GITHUB_REPO = 'mbron64/simplestclaw';
+const APP_VERSION = '0.1.0';
+
+const getDownloadUrl = (platform: 'macos' | 'windows' | 'linux') => {
+  const baseUrl = `https://github.com/${GITHUB_REPO}/releases/latest/download`;
+  switch (platform) {
+    case 'macos':
+      return `${baseUrl}/simplestclaw_${APP_VERSION}_universal.dmg`;
+    case 'windows':
+      return `${baseUrl}/simplestclaw_${APP_VERSION}_x64-setup.exe`;
+    case 'linux':
+      return `${baseUrl}/simplestclaw_${APP_VERSION}_amd64.deb`;
+  }
+};
+
 export default function Home() {
   const [mode, setMode] = useState<DeploymentMode>(null);
   const [gatewayUrl, setGatewayUrl] = useState('');
@@ -168,13 +184,14 @@ export default function Home() {
 
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { name: 'macOS', sub: 'Universal' },
-                  { name: 'Windows', sub: '10+' },
-                  { name: 'Linux', sub: '.deb' },
+                  { name: 'macOS', sub: 'Universal', platform: 'macos' as const },
+                  { name: 'Windows', sub: '10+', platform: 'windows' as const },
+                  { name: 'Linux', sub: '.deb', platform: 'linux' as const },
                 ].map((p) => (
                   <a
                     key={p.name}
-                    href="https://github.com/mbron64/simplestclaw/releases/latest"
+                    href={getDownloadUrl(p.platform)}
+                    download
                     className="relative p-6 rounded-xl bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20 transition-all text-center"
                   >
                     <GlowingEffect

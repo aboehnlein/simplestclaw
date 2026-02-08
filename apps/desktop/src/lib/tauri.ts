@@ -7,7 +7,18 @@ export interface Config {
   autoStartGateway: boolean;
 }
 
+export interface RuntimeStatus {
+  installed: boolean;
+  version: string | null;
+  nodePath: string | null;
+  npxPath: string | null;
+  downloading: boolean;
+  downloadProgress: number;
+  error: string | null;
+}
+
 export const tauri = {
+  // Config
   async getConfig(): Promise<Config> {
     return invoke('get_config');
   },
@@ -20,6 +31,7 @@ export const tauri = {
     return invoke('has_api_key');
   },
 
+  // Gateway
   async startGateway(): Promise<GatewayInfo> {
     return invoke('start_gateway');
   },
@@ -28,7 +40,20 @@ export const tauri = {
     return invoke('stop_gateway');
   },
 
-  async getGatewayStatus(): Promise<{ running: boolean; info: GatewayInfo | null }> {
+  async getGatewayStatus(): Promise<{ running: boolean; info: GatewayInfo | null; error: string | null }> {
     return invoke('get_gateway_status');
+  },
+
+  // Runtime
+  async getRuntimeStatus(): Promise<RuntimeStatus> {
+    return invoke('get_runtime_status');
+  },
+
+  async installRuntime(): Promise<void> {
+    return invoke('install_runtime');
+  },
+
+  async isRuntimeInstalled(): Promise<boolean> {
+    return invoke('is_runtime_installed');
   },
 };

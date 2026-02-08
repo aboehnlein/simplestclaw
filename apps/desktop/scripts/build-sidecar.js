@@ -1,151 +1,149 @@
 #!/usr/bin/env node
 /**
- * Build OpenClaw as standalone binaries for Tauri sidecar
+ * OpenClaw Sidecar Builder
+ * 
+ * RECOMMENDED APPROACH (2026): Node.js 25+ Single Executable Application (SEA)
+ * 
+ * Node.js 25.5.0 introduced `--build-sea` which simplifies creating standalone
+ * executables. Combined with esbuild for bundling ESM → CJS, this is now the
+ * most reliable approach.
+ * 
+ * IMPORTANT: SEA only supports CommonJS, so we must bundle ESM to CJS first.
  * 
  * References:
- * - Tauri sidecar: https://v2.tauri.app/develop/sidecar/
- * - pkg: https://github.com/vercel/pkg (archived but functional)
- * - nexe: https://github.com/nexe/nexe (alternative)
+ * - Node.js SEA: https://nodejs.org/api/single-executable-applications.html
+ * - Node.js 25.5 blog: https://nodejs.org/en/blog/release/v25.5.0
+ * - esbuild: https://esbuild.github.io/
  * 
- * Run: pnpm build:sidecar (from apps/desktop directory)
+ * ALTERNATIVE APPROACHES:
+ * 1. npx (current) - Uses npx at runtime, requires Node.js installed
+ * 2. @yao-pkg/pkg - Has ESM issues, use --no-bytecode
+ * 3. boxednode - MongoDB's tool, compiles Node.js from source (slow but reliable)
+ * 4. AppThreat caxa - Maintained fork with good compression
+ * 
+ * Run: pnpm build:sidecar
  */
 
 import { exec } from 'node:child_process';
-import { mkdir, chmod, access, constants } from 'node:fs/promises';
+import { mkdir, rm, writeFile, chmod, access, constants } from 'node:fs/promises';
 import { promisify } from 'node:util';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 
 const execAsync = promisify(exec);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
-// Target triples must match Tauri's expectations
-// See: https://v2.tauri.app/develop/sidecar/
+// Tauri target triples
 const TARGETS = [
-  { pkg: 'node18-macos-x64', tauri: 'x86_64-apple-darwin', ext: '' },
-  { pkg: 'node18-macos-arm64', tauri: 'aarch64-apple-darwin', ext: '' },
-  { pkg: 'node18-linux-x64', tauri: 'x86_64-unknown-linux-gnu', ext: '' },
-  { pkg: 'node18-win-x64', tauri: 'x86_64-pc-windows-msvc', ext: '.exe' },
+  { tauri: 'aarch64-apple-darwin', os: 'darwin', arch: 'arm64', ext: '' },
+  { tauri: 'x86_64-apple-darwin', os: 'darwin', arch: 'x64', ext: '' },
+  { tauri: 'x86_64-unknown-linux-gnu', os: 'linux', arch: 'x64', ext: '' },
+  { tauri: 'x86_64-pc-windows-msvc', os: 'win32', arch: 'x64', ext: '.exe' },
 ];
 
-async function findOpenclaw() {
-  // Check if openclaw is installed globally
-  try {
-    const { stdout } = await execAsync('npm root -g');
-    const openclawPath = join(stdout.trim(), 'openclaw');
-    await access(openclawPath, constants.R_OK);
-    return openclawPath;
-  } catch {
-    return null;
+function getCurrentTarget() {
+  const { platform, arch } = process;
+  if (platform === 'darwin') {
+    return arch === 'arm64' ? 'aarch64-apple-darwin' : 'x86_64-apple-darwin';
+  } else if (platform === 'linux') {
+    return 'x86_64-unknown-linux-gnu';
+  } else if (platform === 'win32') {
+    return 'x86_64-pc-windows-msvc';
   }
+  return null;
 }
 
-async function installOpenclaw() {
-  console.log('Installing OpenClaw globally...');
-  try {
-    await execAsync('npm install -g openclaw');
-    console.log('  ✓ OpenClaw installed\n');
-    return await findOpenclaw();
-  } catch (err) {
-    throw new Error(
-      `Failed to install OpenClaw: ${err.message}\n` +
-      'Try manually: npm install -g openclaw\n' +
-      'See: https://docs.clawd.bot/install'
-    );
-  }
+async function checkNodeVersion() {
+  const version = process.versions.node;
+  const major = parseInt(version.split('.')[0], 10);
+  return { version, major, supportsSEA: major >= 25 };
 }
 
 async function main() {
-  console.log('╔════════════════════════════════════════╗');
-  console.log('║   OpenClaw Sidecar Builder             ║');
-  console.log('╚════════════════════════════════════════╝\n');
+  console.log('╔══════════════════════════════════════════════════════════╗');
+  console.log('║   OpenClaw Sidecar Builder                               ║');
+  console.log('╚══════════════════════════════════════════════════════════╝\n');
 
+  const nodeInfo = await checkNodeVersion();
+  console.log(`Node.js version: ${nodeInfo.version}`);
+  console.log(`SEA support (--build-sea): ${nodeInfo.supportsSEA ? '✓ Yes' : '✗ No (requires Node.js 25+)'}\n`);
+
+  // Current approach info
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('CURRENT IMPLEMENTATION: npx approach');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  
+  console.log('The app uses `npx --yes openclaw gateway` at runtime.');
+  console.log('This works automatically if Node.js is installed.\n');
+  
+  console.log('Benefits:');
+  console.log('  • No build step required');
+  console.log('  • Always uses latest openclaw version');
+  console.log('  • Smaller app bundle\n');
+
+  console.log('Trade-off:');
+  console.log('  • Users need Node.js installed');
+  console.log('  • First run downloads openclaw (~30 seconds)\n');
+
+  // Clean up old binaries if they exist
   const binDir = join(ROOT, 'src-tauri', 'binaries');
-  await mkdir(binDir, { recursive: true });
-
-  // Find or install OpenClaw
-  let openclawPath = await findOpenclaw();
-  if (!openclawPath) {
-    openclawPath = await installOpenclaw();
+  if (existsSync(binDir)) {
+    console.log('Cleaning up old binaries...');
+    await rm(binDir, { recursive: true, force: true });
+    console.log('  ✓ Removed src-tauri/binaries/\n');
   }
+
+  // Show alternative approaches
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('ALTERNATIVE: Build standalone binaries (2026 methods)');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+  if (nodeInfo.supportsSEA) {
+    console.log('✓ Node.js 25+ SEA method available!');
+    console.log('  To build standalone executables:\n');
+    console.log('  1. Bundle with esbuild (ESM → CJS):');
+    console.log('     npx esbuild openclaw/dist/entry.js --bundle --platform=node --format=cjs --outfile=bundle.cjs\n');
+    console.log('  2. Create sea-config.json:');
+    console.log('     { "main": "bundle.cjs", "output": "openclaw" }\n');
+    console.log('  3. Build SEA:');
+    console.log('     node --build-sea sea-config.json\n');
+  } else {
+    console.log('✗ Node.js 25+ required for built-in SEA support');
+    console.log('  Current: Node.js ' + nodeInfo.version);
+    console.log('  Install: https://nodejs.org/\n');
+  }
+
+  console.log('Other options:');
+  console.log('  • @yao-pkg/pkg: npx @yao-pkg/pkg bundle.cjs --no-bytecode');
+  console.log('  • boxednode: npx boxednode -s bundle.js -t openclaw');
+  console.log('  • caxa (AppThreat fork): Better compression\n');
+
+  console.log('Note: All bundling methods have issues with openclaw\'s:');
+  console.log('  • Dynamic imports');
+  console.log('  • Optional native dependencies (playwright, canvas, etc.)');
+  console.log('  • ESM + import.meta.url usage\n');
+
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('RECOMMENDATION');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
-  if (!openclawPath) {
-    throw new Error(
-      'OpenClaw not found after install.\n' +
-      'Install manually with: npm install -g openclaw'
-    );
-  }
-  
-  console.log(`Found OpenClaw at: ${openclawPath}\n`);
+  console.log('For developer tools like simplestclaw, the npx approach is ideal:');
+  console.log('  • Developers already have Node.js');
+  console.log('  • No complex build pipeline');
+  console.log('  • Auto-updates to latest openclaw\n');
 
-  // Determine current platform for priority build
-  const { stdout: hostTriple } = await execAsync('rustc --print host-tuple').catch(() => ({ stdout: '' }));
-  const currentPlatform = hostTriple.trim();
-  console.log(`Current platform: ${currentPlatform || 'unknown'}\n`);
+  console.log('For non-developer users, consider:');
+  console.log('  • Shipping Node.js runtime + bundled script');
+  console.log('  • Using Electron instead of Tauri\n');
 
-  let successCount = 0;
-  let failCount = 0;
-
-  // Build for current platform first (most likely to succeed)
-  const sortedTargets = [...TARGETS].sort((a, b) => {
-    if (a.tauri === currentPlatform) return -1;
-    if (b.tauri === currentPlatform) return 1;
-    return 0;
-  });
-
-  for (const target of sortedTargets) {
-    const outputName = `openclaw-${target.tauri}${target.ext}`;
-    const outputPath = join(binDir, outputName);
-    const isCurrentPlatform = target.tauri === currentPlatform;
-
-    console.log(`Building ${target.tauri}${isCurrentPlatform ? ' (current)' : ''}...`);
-
-    try {
-      // Using pkg - archives but works well
-      // If you prefer nexe, change to:
-      // await execAsync(`npx nexe "${openclawPath}" -t ${target.pkg.replace('node18', 'macos-x64')} -o "${outputPath}"`);
-      await execAsync(
-        `npx pkg "${openclawPath}" --target ${target.pkg} --output "${outputPath}"`,
-        { timeout: 300000 } // 5 minute timeout
-      );
-
-      // Make executable on Unix (required for Tauri to run it)
-      if (!target.ext) {
-        await chmod(outputPath, 0o755);
-      }
-
-      console.log(`  ✓ ${outputName}\n`);
-      successCount++;
-    } catch (err) {
-      console.error(`  ✗ Failed: ${err.message?.split('\n')[0] || 'Unknown error'}\n`);
-      failCount++;
-      
-      // If current platform fails, that's a problem
-      if (isCurrentPlatform) {
-        console.error('  ⚠ Current platform build failed - this will prevent local testing\n');
-      }
-    }
-  }
-
-  console.log('────────────────────────────────────────');
-  console.log(`Built: ${successCount}/${TARGETS.length}`);
-  
-  if (failCount > 0) {
-    console.log(`\nNote: Cross-compilation may fail for non-current platforms.`);
-    console.log(`Build on each target platform for production releases.`);
-  }
-
-  console.log(`\nBinaries saved to: ${binDir}`);
-  
-  if (successCount > 0) {
-    console.log('\nNext steps:');
-    console.log('  1. pnpm tauri dev   # Test locally');
-    console.log('  2. pnpm tauri build # Build release');
-  }
+  console.log('To build the app:');
+  console.log('  pnpm tauri dev   # Development');
+  console.log('  pnpm tauri build # Production\n');
 }
 
 main().catch((err) => {
-  console.error('\n❌ Error:', err.message);
+  console.error('Error:', err.message);
   process.exit(1);
 });

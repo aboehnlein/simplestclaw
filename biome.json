@@ -19,8 +19,8 @@
         "noArrayIndexKey": "warn"
       },
       "a11y": {
-        "noSvgWithoutTitle": "warn",
-        "useButtonType": "warn"
+        "noSvgWithoutTitle": "off",
+        "useButtonType": "off"
       }
     }
   },

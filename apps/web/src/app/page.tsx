@@ -74,7 +74,9 @@ export default function Home() {
             rel="noopener noreferrer"
             className="group flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-md border border-white/20 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/30 transition-all"
           >
-            <span className="text-white/70 group-hover:text-white/90 transition-colors">Star on GitHub</span>
+            <span className="text-white/70 group-hover:text-white/90 transition-colors">
+              Star on GitHub
+            </span>
             <svg
               className="w-4 h-4 text-white/60 group-hover:text-yellow-400 transition-colors"
               fill="currentColor"

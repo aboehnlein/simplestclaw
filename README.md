@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="apps/web/public/red_claw.png" width="80" alt="SimplestClaw Logo" />
+  <img src="apps/web/public/apple-icon.png" width="100" alt="SimplestClaw Logo" />
 </p>
 
 <h1 align="center">simplestclaw</h1>

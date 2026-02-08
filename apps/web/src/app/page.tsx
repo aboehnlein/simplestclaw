@@ -294,7 +294,7 @@ export default function Home() {
                 <h2 className="text-[28px] font-medium mb-6 text-center">Deploy to the cloud</h2>
 
               <a
-                href="https://railway.com/deploy/gEz3TD?referralCode=Y7R5kV"
+                href="https://railway.com/new/template/simplestclaw"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative flex items-center justify-center gap-2 w-full p-4 rounded-xl bg-white text-black text-[15px] font-medium hover:bg-white/90 transition-colors"

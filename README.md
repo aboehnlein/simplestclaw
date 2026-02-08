@@ -14,7 +14,7 @@ simplestclaw makes it dead simple to get OpenClaw running - either on your own m
 1. **Local (Free)** - Download our desktop app, it bundles OpenClaw and runs on your machine
 2. **Hosted (~$5/mo)** - Click "Deploy on Railway" and get a cloud instance in 60 seconds
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/simplestclaw)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/gEz3TD?referralCode=Y7R5kV)
 
 ## Features
 
@@ -39,7 +39,7 @@ Download for your platform:
 
 Click the button below, sign in to Railway, and you're done:
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/simplestclaw)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/gEz3TD?referralCode=Y7R5kV)
 
 You pay Railway directly (~$5/month). We never touch your money.
 
@@ -63,7 +63,8 @@ pnpm dev
 simplestclaw/
 ├── apps/
 │   ├── web/           # Next.js web app (chat UI, dashboard)
-│   └── desktop/       # Tauri desktop app
+│   ├── gateway/       # Railway-deployable OpenClaw gateway
+│   └── desktop/       # Tauri desktop app (coming soon)
 ├── packages/
 │   ├── ui/            # Shared UI components
 │   └── openclaw-client/  # OpenClaw Gateway WebSocket client

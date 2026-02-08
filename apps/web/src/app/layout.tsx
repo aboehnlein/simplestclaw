@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     'One-click setup for OpenClaw, the open-source AI coding assistant. No Telegram required. Run locally or deploy to the cloud.',
   metadataBase: new URL('https://simplestclaw.com'),
   icons: {
-    icon: '/icon.svg',
-    apple: '/apple-icon.png',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
   openGraph: {
     title: 'simplestclaw',

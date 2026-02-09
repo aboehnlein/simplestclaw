@@ -20,6 +20,7 @@ pub fn run() {
     
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             // Initialize managers
             app.manage(SidecarManager::default());

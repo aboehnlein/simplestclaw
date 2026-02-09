@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AppScreen = 'loading' | 'onboarding' | 'chat' | 'settings';
+export type AppScreen = 'loading' | 'onboarding' | 'chat' | 'settings' | 'delete-success';
 
 export interface GatewayInfo {
   url: string;

@@ -541,12 +541,8 @@ function FinalConfirmDialog({
 // Reset Data Section Component
 type ConfirmStep = 'none' | 'first' | 'final';
 
-function ResetDataSection({
-  onResetComplete,
-}: {
-  onResetComplete: () => void;
-}) {
-  const { addActivityLog, setScreen, setGatewayStatus, setApiKeyConfigured } = useAppStore();
+function ResetDataSection() {
+  const { setScreen } = useAppStore();
   const [dataInfo, setDataInfo] = useState<AppDataInfo | null>(null);
   const [confirmStep, setConfirmStep] = useState<ConfirmStep>('none');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -590,28 +586,16 @@ function ResetDataSection({
       // Delete all data
       await tauri.deleteAllAppData();
 
-      addActivityLog({
-        operationType: 'gateway',
-        details: 'All app data deleted - reset to fresh state',
-        status: 'success',
-      });
-
-      // Reset app state
-      setGatewayStatus({ type: 'stopped' });
-      setApiKeyConfigured(false);
-
-      // Navigate to loading screen (which will go to onboarding)
-      setScreen('loading');
-      onResetComplete();
+      // Navigate to success screen where user can choose to restart or quit
+      setScreen('delete-success');
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
       console.error('Failed to delete app data:', err);
-    } finally {
       setIsDeleting(false);
       setConfirmStep('none');
     }
-  }, [addActivityLog, setGatewayStatus, setApiKeyConfigured, setScreen, onResetComplete]);
+  }, [setScreen]);
 
   return (
     <>
@@ -786,11 +770,6 @@ export function GeneralTab() {
     }
   };
 
-  const handleResetComplete = useCallback(() => {
-    // This callback is called after successful data deletion
-    // The screen will already be set to 'loading' which will transition to onboarding
-  }, []);
-
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="space-y-8">
@@ -814,7 +793,7 @@ export function GeneralTab() {
         <RuntimeStatusSection runtimeDetails={runtimeDetails} />
         <AppInfoSection version={appVersion} />
         <LogoutSection loggingOut={loggingOut} onLogout={handleLogout} />
-        <ResetDataSection onResetComplete={handleResetComplete} />
+        <ResetDataSection />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Chat } from './components/Chat';
+import { DeleteSuccessScreen } from './components/DeleteSuccessScreen';
 import { Loading } from './components/Loading';
 import { Onboarding } from './components/Onboarding';
 import { SettingsPanel } from './components/SettingsPanel';
@@ -132,6 +133,8 @@ function App() {
       return <SettingsPanel />;
     case 'chat':
       return <Chat />;
+    case 'delete-success':
+      return <DeleteSuccessScreen />;
     default:
       return <Loading />;
   }

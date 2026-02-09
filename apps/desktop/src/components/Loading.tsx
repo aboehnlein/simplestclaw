@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Download, Loader2 } from 'lucide-react';
+import { AlertCircle, Check, Loader2 } from 'lucide-react';
 import type { GatewayStatus, RuntimeStatus } from '../lib/store';
 import { useAppStore } from '../lib/store';
 import { TextShimmer } from './ui/text-shimmer';
@@ -92,13 +92,13 @@ export function Loading() {
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-[#0a0a0a] text-[#fafafa] antialiased">
       <div className="flex flex-col items-center space-y-6 max-w-md px-8">
-        {/* Logo/Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/10 flex items-center justify-center mb-2">
-          {phase === 'downloading' ? (
-            <Download className="w-8 h-8 text-blue-400 animate-pulse" />
-          ) : (
-            <Loader2 className="w-8 h-8 text-white/40 animate-spin" />
-          )}
+        {/* Logo */}
+        <div className="w-16 h-16 rounded-2xl bg-[#09090b] border border-white/10 flex items-center justify-center mb-2 overflow-hidden">
+          <img
+            src="/logo.png"
+            alt="SimplestClaw"
+            className="w-12 h-12 object-contain"
+          />
         </div>
 
         {/* Shimmer text - main status */}
@@ -139,13 +139,6 @@ export function Loading() {
             First-time setup: downloading Node.js runtime (~45MB)
             <br />
             This only happens once.
-          </p>
-        )}
-
-        {/* Starting gateway notice */}
-        {phase === 'starting' && (
-          <p className="text-[11px] text-white/30 text-center mt-2">
-            Initializing AI connection...
           </p>
         )}
       </div>

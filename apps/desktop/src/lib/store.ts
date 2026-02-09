@@ -1,3 +1,4 @@
+import type { Message } from '@simplestclaw/openclaw-client';
 import { create } from 'zustand';
 
 export type AppScreen = 'loading' | 'onboarding' | 'chat' | 'settings' | 'delete-success';
@@ -36,6 +37,7 @@ interface AppState {
   apiKeyConfigured: boolean;
   error: string | null;
   activityLog: ActivityLogEntry[];
+  messages: Message[];
 
   setScreen: (screen: AppScreen) => void;
   setGatewayStatus: (status: GatewayStatus) => void;
@@ -45,6 +47,9 @@ interface AppState {
   addActivityLog: (entry: Omit<ActivityLogEntry, 'id' | 'timestamp'>) => void;
   setActivityLog: (entries: ActivityLogEntry[]) => void;
   clearActivityLog: () => void;
+  addMessage: (message: Message) => void;
+  setMessages: (messages: Message[]) => void;
+  clearMessages: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -54,6 +59,7 @@ export const useAppStore = create<AppState>((set) => ({
   apiKeyConfigured: false,
   error: null,
   activityLog: [],
+  messages: [],
 
   setScreen: (screen) => set({ screen }),
   setGatewayStatus: (gatewayStatus) => set({ gatewayStatus }),
@@ -73,4 +79,10 @@ export const useAppStore = create<AppState>((set) => ({
     })),
   setActivityLog: (activityLog) => set({ activityLog }),
   clearActivityLog: () => set({ activityLog: [] }),
+  addMessage: (message) =>
+    set((state) => ({
+      messages: [...state.messages, message],
+    })),
+  setMessages: (messages) => set({ messages }),
+  clearMessages: () => set({ messages: [] }),
 }));

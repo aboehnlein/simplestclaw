@@ -45,8 +45,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 export function Chat() {
-  const { gatewayStatus, setScreen, addActivityLog } = useAppStore();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { gatewayStatus, setScreen, addActivityLog, messages, addMessage } = useAppStore();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
@@ -98,7 +97,7 @@ export function Chat() {
       .on('onMessage', (msg) => {
         console.log('[Chat] Message received:', msg);
         if (isActive) {
-          setMessages((prev) => [...prev, msg]);
+          addMessage(msg);
           // Log AI response activity
           if (msg.role === 'assistant') {
             addActivityLog({
@@ -171,7 +170,7 @@ export function Chat() {
         client.disconnect();
       }
     };
-  }, [gatewayUrl, gatewayToken, addActivityLog]);
+  }, [gatewayUrl, gatewayToken, addActivityLog, addMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,7 +183,7 @@ export function Chat() {
       timestamp: Date.now(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    addMessage(userMessage);
     setInput('');
     setIsLoading(true);
 

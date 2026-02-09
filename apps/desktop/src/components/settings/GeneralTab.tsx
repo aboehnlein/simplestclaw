@@ -220,6 +220,8 @@ function GatewayStatusSection() {
   };
 
   const statusDisplay = getStatusDisplay();
+  const dashboardUrl =
+    gatewayStatus.type === 'running' ? `http://localhost:${gatewayStatus.info.port}/` : null;
 
   return (
     <section>
@@ -243,6 +245,17 @@ function GatewayStatusSection() {
             <div className="flex items-center justify-between">
               <span className="text-[14px] text-white/60">Port</span>
               <span className="text-[14px] text-white/80 font-mono">{gatewayStatus.info.port}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[14px] text-white/60">Control UI</span>
+              <a
+                href={dashboardUrl ?? '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[14px] text-blue-400 hover:text-blue-300 transition-colors underline"
+              >
+                Open Dashboard
+              </a>
             </div>
           </>
         )}

@@ -224,15 +224,15 @@ pub async fn get_app_data_info() -> Result<AppDataInfo, String> {
     })
 }
 
-/// Delete all app data - config, runtime, and activity log
-/// This will reset the app to a fresh state
+/// Delete all app data - config, runtime, and openclaw cache
+/// This will reset the app to a completely fresh state
 #[tauri::command]
 pub async fn delete_all_app_data() -> Result<(), String> {
     let config_dir = get_config_app_dir();
     let data_dir = get_data_app_dir();
 
     tokio::task::spawn_blocking(move || {
-        // Delete config directory
+        // Delete config directory (includes runtime on macOS)
         if let Some(path) = config_dir {
             if path.exists() {
                 println!("[reset] Deleting config directory: {:?}", path);
@@ -243,10 +243,9 @@ pub async fn delete_all_app_data() -> Result<(), String> {
             }
         }
 
-        // Delete data directory (if different from config)
+        // Delete data directory (if different from config, e.g. on Linux/Windows)
         if let Some(path) = data_dir {
             if path.exists() {
-                // Check if this is different from config_dir
                 let config_dir_check = get_config_app_dir();
                 if config_dir_check.as_ref() != Some(&path) {
                     println!("[reset] Deleting data directory: {:?}", path);
@@ -258,9 +257,64 @@ pub async fn delete_all_app_data() -> Result<(), String> {
             }
         }
 
+        // Delete only the openclaw package from npx cache
+        // NPX cache uses hash-named folders, each containing node_modules/
+        // We find and delete only folders that contain openclaw
+        delete_openclaw_from_npx_cache();
+
         println!("[reset] All app data deleted successfully");
         Ok(())
     })
     .await
     .map_err(|e| format!("Task failed: {}", e))?
+}
+
+/// Delete only openclaw-related entries from the npx cache
+/// This is safe because we only delete folders that contain openclaw,
+/// leaving other npx-cached packages untouched
+fn delete_openclaw_from_npx_cache() {
+    // Get npx cache directory
+    let npx_cache = if cfg!(windows) {
+        // Windows: %LocalAppData%/npm-cache/_npx
+        dirs::data_local_dir().map(|d| d.join("npm-cache").join("_npx"))
+    } else {
+        // macOS/Linux: ~/.npm/_npx
+        dirs::home_dir().map(|d| d.join(".npm").join("_npx"))
+    };
+
+    let Some(npx_cache) = npx_cache else {
+        println!("[reset] Could not determine npx cache location");
+        return;
+    };
+
+    if !npx_cache.exists() {
+        println!("[reset] No npx cache found at {:?}", npx_cache);
+        return;
+    }
+
+    println!("[reset] Scanning npx cache for openclaw: {:?}", npx_cache);
+
+    // Iterate through hash-named folders in _npx
+    let Ok(entries) = fs::read_dir(&npx_cache) else {
+        println!("[reset] Could not read npx cache directory");
+        return;
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+
+        // Check if this folder contains openclaw in node_modules
+        let openclaw_path = path.join("node_modules").join("openclaw");
+        if openclaw_path.exists() {
+            println!("[reset] Found openclaw cache, deleting: {:?}", path);
+            if let Err(e) = fs::remove_dir_all(&path) {
+                eprintln!("[reset] Warning: Failed to delete openclaw cache: {}", e);
+            } else {
+                println!("[reset] Deleted openclaw cache successfully");
+            }
+        }
+    }
 }

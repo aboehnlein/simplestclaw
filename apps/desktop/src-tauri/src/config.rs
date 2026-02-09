@@ -224,7 +224,7 @@ pub async fn get_app_data_info() -> Result<AppDataInfo, String> {
     })
 }
 
-/// Delete all app data - config, runtime, and openclaw cache
+/// Delete all app data - config, runtime, openclaw package, and openclaw data
 /// This will reset the app to a completely fresh state
 #[tauri::command]
 pub async fn delete_all_app_data() -> Result<(), String> {
@@ -257,16 +257,64 @@ pub async fn delete_all_app_data() -> Result<(), String> {
             }
         }
 
-        // Delete only the openclaw package from npx cache
-        // NPX cache uses hash-named folders, each containing node_modules/
-        // We find and delete only folders that contain openclaw
+        // Delete openclaw package from npx cache
         delete_openclaw_from_npx_cache();
+
+        // Delete openclaw's own data directory (sessions, memory, conversation history)
+        // This is created by openclaw itself at ~/.openclaw/
+        delete_openclaw_data_directory();
 
         println!("[reset] All app data deleted successfully");
         Ok(())
     })
     .await
     .map_err(|e| format!("Task failed: {}", e))?
+}
+
+/// Delete OpenClaw's own data directory
+/// OpenClaw creates ~/.openclaw/ (and legacy ~/.clawdbot/) to store:
+/// - sessions.json (session metadata)
+/// - *.jsonl files (conversation transcripts)
+/// - workspace/ (memory, prompts, skills)
+/// - openclaw.json (config)
+fn delete_openclaw_data_directory() {
+    let Some(home) = dirs::home_dir() else {
+        println!("[reset] Could not determine home directory");
+        return;
+    };
+
+    // Primary OpenClaw data directory: ~/.openclaw/
+    let openclaw_dir = home.join(".openclaw");
+    if openclaw_dir.exists() {
+        println!("[reset] Deleting OpenClaw data directory: {:?}", openclaw_dir);
+        if let Err(e) = fs::remove_dir_all(&openclaw_dir) {
+            eprintln!("[reset] Warning: Failed to delete OpenClaw data: {}", e);
+        } else {
+            println!("[reset] Deleted OpenClaw data directory successfully");
+        }
+    }
+
+    // Legacy OpenClaw data directory: ~/.clawdbot/
+    let legacy_dir = home.join(".clawdbot");
+    if legacy_dir.exists() {
+        println!("[reset] Deleting legacy OpenClaw directory: {:?}", legacy_dir);
+        if let Err(e) = fs::remove_dir_all(&legacy_dir) {
+            eprintln!("[reset] Warning: Failed to delete legacy OpenClaw data: {}", e);
+        } else {
+            println!("[reset] Deleted legacy OpenClaw directory successfully");
+        }
+    }
+
+    // Legacy workspace directory: ~/clawd/
+    let legacy_workspace = home.join("clawd");
+    if legacy_workspace.exists() {
+        println!("[reset] Deleting legacy workspace: {:?}", legacy_workspace);
+        if let Err(e) = fs::remove_dir_all(&legacy_workspace) {
+            eprintln!("[reset] Warning: Failed to delete legacy workspace: {}", e);
+        } else {
+            println!("[reset] Deleted legacy workspace successfully");
+        }
+    }
 }
 
 /// Delete only openclaw-related entries from the npx cache

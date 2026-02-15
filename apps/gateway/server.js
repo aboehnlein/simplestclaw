@@ -334,11 +334,16 @@ function getWelcomePage() {
  * Creates a minimal config if it doesn't exist, or updates the model in existing config.
  */
 function configureOpenClawModel() {
+  console.log('[DEBUG] configureOpenClawModel() called');
+  
   const configDir = path.join(process.env.HOME || os.homedir(), '.openclaw');
   const configPath = path.join(configDir, 'openclaw.json');
+  
+  console.log(`[DEBUG] Config path: ${configPath}`);
 
   // Ensure directory exists
   if (!fs.existsSync(configDir)) {
+    console.log(`[DEBUG] Creating directory: ${configDir}`);
     fs.mkdirSync(configDir, { recursive: true });
   }
 
@@ -361,14 +366,17 @@ function configureOpenClawModel() {
   // Set model from environment variable if provided
   if (process.env.OPENCLAW_AGENT_MODEL) {
     config.agents.defaults.model.primary = process.env.OPENCLAW_AGENT_MODEL;
-    console.log(`[openclaw] Model configured: ${process.env.OPENCLAW_AGENT_MODEL}`);
+    console.log(`[DEBUG] ✓ Model set to: ${process.env.OPENCLAW_AGENT_MODEL}`);
+  } else {
+    console.log('[DEBUG] ⚠ OPENCLAW_AGENT_MODEL environment variable not set');
   }
 
   // Write config back
   try {
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+    console.log('[DEBUG] ✓ openclaw.json written successfully');
   } catch (err) {
-    console.error(`Error writing openclaw.json: ${err.message}`);
+    console.error(`[DEBUG] ✗ Error writing openclaw.json: ${err.message}`);
   }
 }
 
@@ -381,6 +389,8 @@ function configureOpenClawModel() {
  * Handles stdout/stderr logging and automatic restart on crash.
  */
 function startOpenClaw() {
+  console.log('[DEBUG] ✓ Running new server.js version with configureOpenClawModel()');
+  
   configureOpenClawModel();
 
   console.log('Starting OpenClaw gateway...');
